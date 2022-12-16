@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"chat-jobsity/internal/command"
+	"chat-jobsity/internal/models"
+	"chat-jobsity/internal/util"
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 var (
@@ -13,50 +13,26 @@ var (
 )
 
 type MessageHandler struct {
+	validator *util.MessageValidator
 }
 
 func NewMessageHandler() *MessageHandler {
-	return &MessageHandler{}
-}
-
-func (h *MessageHandler) Hello(c echo.Context) error {
-	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
-	if err != nil {
-		return err
-	}
-	defer ws.Close()
-
-	for {
-		// Write
-		err := ws.WriteMessage(websocket.TextMessage, []byte("Hello, Client!"))
-		if err != nil {
-			c.Logger().Error(err)
-		}
-
-		// Read
-		_, msg, err := ws.ReadMessage()
-		if err != nil {
-			c.Logger().Error(err)
-		}
-		fmt.Printf("%s\n", msg)
+	return &MessageHandler{
+		validator: util.NewMessageValidator(),
 	}
 }
 
-func (h *MessageHandler) HandleCommand(c echo.Context) error {
-	msg := new(command.Message)
-	if err := c.Bind(msg); err != nil {
-		return c.String(http.StatusBadRequest, "bad request")
-	}
-
-	cmdRunner, err := command.GetCommand(msg.Command)
+func (h *MessageHandler) HandleMessage(msg []byte) (string, error) {
+	msgRequest := &models.MessageRequest{}
+	err := json.Unmarshal(msg, msgRequest)
 	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+		fmt.Errorf(err.Error())
 	}
 
-	message, err := cmdRunner.Run(msg.Value)
+	message, err := h.validator.ValidateMessage(msgRequest)
 	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+		return message, err
 	}
 
-	return c.JSON(http.StatusOK, message)
+	return message, nil
 }

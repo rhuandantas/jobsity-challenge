@@ -8,5 +8,5 @@ import (
 func main() {
 	messageHandler := handler.NewMessageHandler()
 	api := server.NewAPI(messageHandler)
-	api.Server.Logger.Fatal(api.Server.Start(":1323"))
+	api.Server.Logger.Fatal(api.Server.Start(":3001"))
 }

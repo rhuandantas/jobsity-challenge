@@ -1,40 +1,35 @@
-<!doctype html>
-<html lang="en">
-
+<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>WebSocket</title>
+    <title>Melody example: chatting</title>
 </head>
 
+<style>
+    #chat {
+        text-align: left;
+        background: #f1f1f1;
+        width: 500px;
+        min-height: 300px;
+        padding: 20px;
+    }
+</style>
+
 <body>
-<p>Teste FAKE</p>
-<p id="output"></p>
+<center>
+    <h3>Join a channel</h3>
+    <input placeholder="channel" id="channel" type="text"><button id="join">Join</button>
+</center>
 
 <script>
-    var loc = window.location;
-    var uri = 'ws:';
+    var chan = document.getElementById("channel");
+    var join = document.getElementById("join");
 
-    if (loc.protocol === 'https:') {
-        uri = 'wss:';
-    }
-    uri += '//' + loc.host;
-    uri += loc.pathname + 'ws';
+    join.onclick = function () {
+        if (chan.value != "") {
+            window.location = "/channel/" + chan.value;
+        }
+    };
 
-    ws = new WebSocket(uri)
-
-    ws.onopen = function() {
-        console.log('Connected')
-    }
-
-    ws.onmessage = function(evt) {
-        var out = document.getElementById('output');
-        out.innerHTML += evt.data + '<br>';
-    }
-
-    setInterval(function() {
-        ws.send('Hello, Server!');
-    }, 1000);
 </script>
 </body>
-
 </html>

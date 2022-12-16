@@ -10,11 +10,6 @@ var (
 	Stock = "/stock"
 )
 
-type Message struct {
-	Command string `json:"command"`
-	Value   string `json:"value"`
-}
-
 type Command interface {
 	Run(param string) (string, error)
 }

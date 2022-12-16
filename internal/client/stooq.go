@@ -10,17 +10,6 @@ import (
 type StooqClient struct {
 }
 
-type Stooq struct {
-	Symbol string
-	Date   string
-	Time   string
-	Open   float64
-	High   float64
-	Low    float64
-	Close  float64
-	Volume float64
-}
-
 func (cli StooqClient) GetStockDetails(stockCode string) (string, error) {
 	url := fmt.Sprintf("https://stooq.com/q/l/?s=%s&f=sd2t2ohlcv&h&e=csv", stockCode)
 	res, err := http.Get(url)
