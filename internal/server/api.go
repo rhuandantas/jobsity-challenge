@@ -34,6 +34,7 @@ func CreateServer() *echo.Echo {
 	e.Use(middleware.CORS())
 	e.Static("/", "../public")
 	e.File("/", "public/index.html")
+	e.File("/chat", "public/chat.html")
 
 	return e
 }

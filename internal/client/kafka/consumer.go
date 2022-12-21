@@ -1,6 +1,8 @@
 package kafka
 
 import (
+	"chat-jobsity/internal/config"
+	"chat-jobsity/internal/logging"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/olahol/melody"
@@ -14,19 +16,23 @@ type Consumer interface {
 }
 
 type consumer struct {
-	ws *melody.Melody
+	ws  *melody.Melody
+	cfg config.ConfigStore
+	log logging.SimpleLogger
 }
 
-func NewKafkaConsumer(ws *melody.Melody) Consumer {
+func NewKafkaConsumer(ws *melody.Melody, cfg config.ConfigStore, log logging.SimpleLogger) Consumer {
 	return &consumer{
-		ws: ws,
+		ws:  ws,
+		cfg: cfg,
+		log: log,
 	}
 }
 
 func (kc *consumer) ReadMessage() {
-
+	hosts := fmt.Sprintf("%s:%s", kc.cfg.GetString("kafka.host"), kc.cfg.GetString("kafka.port"))
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers": "127.0.0.1:9092",
+		"bootstrap.servers": hosts,
 		"group.id":          "chat-consumer",
 		"auto.offset.reset": "earliest",
 	})
@@ -35,17 +41,17 @@ func (kc *consumer) ReadMessage() {
 		panic(err)
 	}
 
-	c.SubscribeTopics([]string{"message_as_command"}, nil)
+	c.SubscribeTopics([]string{kc.cfg.GetString("kafka.topic")}, nil)
 
 	run := true
 
 	for run {
 		msg, err := c.ReadMessage(5 * time.Second)
 		if err == nil {
-			fmt.Printf("consumer -> reading on %s: %s\n", msg.TopicPartition, string(msg.Value))
+			kc.log.Info(fmt.Sprintf("consumer -> reading on %s: %s", msg.TopicPartition, msg.Value))
 			kc.ws.Broadcast(msg.Value)
 		} else if !err.(kafka.Error).IsFatal() {
-			fmt.Printf("consumer -> error: %v\n", err)
+			kc.log.Warn(fmt.Sprintf("consumer -> error: %v", err))
 		}
 	}
 

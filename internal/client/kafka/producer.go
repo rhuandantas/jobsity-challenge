@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"chat-jobsity/internal/config"
+	"chat-jobsity/internal/logging"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
@@ -14,6 +15,7 @@ type Producer interface {
 
 type producer struct {
 	cfgManager config.ConfigStore
+	log        logging.SimpleLogger
 }
 
 type Message struct {
@@ -21,9 +23,10 @@ type Message struct {
 	Session string
 }
 
-func NewKafkaProducer(cfgManager config.ConfigStore) Producer {
+func NewKafkaProducer(cfgManager config.ConfigStore, log logging.SimpleLogger) Producer {
 	return &producer{
 		cfgManager: cfgManager,
+		log:        log,
 	}
 }
 
@@ -31,7 +34,7 @@ func (kp *producer) SendMessage(message string) {
 	server := fmt.Sprintf("%s:%s", kp.cfgManager.Get("kafka.host"), kp.cfgManager.Get("kafka.port"))
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": server})
 	if err != nil {
-		fmt.Printf("producer -> %s", err.Error())
+		kp.log.Info("producer -> %s", err.Error())
 	}
 
 	defer p.Close()
@@ -41,15 +44,15 @@ func (kp *producer) SendMessage(message string) {
 			switch ev := e.(type) {
 			case *kafka.Message:
 				if ev.TopicPartition.Error != nil {
-					fmt.Printf("producer -> delivery failed: %v\n", ev.TopicPartition)
+					kp.log.Warn("producer -> delivery failed: %v\n", ev.TopicPartition)
 				} else {
-					fmt.Printf("producer -> delivered message to %v\n", ev.TopicPartition)
+					kp.log.Info("producer -> delivered message to %v\n", ev.TopicPartition)
 				}
 			}
 		}
 	}()
 
-	topic := "message_as_command"
+	topic := kp.cfgManager.GetString("kafka.topic")
 	p.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Value:          []byte(message),

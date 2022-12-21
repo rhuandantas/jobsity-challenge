@@ -16,6 +16,7 @@
 <body>
 <center>
     <h3>Chat</h3>
+    <input placeholder="enter your name" id="name" type="text">
     <pre id="chat"></pre>
     <input placeholder="say something" id="text" type="text">
 </center>
@@ -23,7 +24,6 @@
 <script>
     var url = "ws://" + window.location.host + "/ws";
     var ws = new WebSocket(url);
-    var name = "Guest" + Math.floor(Math.random() * 1000);
 
     var chat = document.getElementById("chat");
     var text = document.getElementById("text");
@@ -35,7 +35,6 @@
 
     ws.onmessage = function (msg) {
         const json = JSON.parse(msg.data);
-        console.log(json)
         if (json.message) {
             var line = now() + " " + json.message + "\n";
             chat.innerText += line;
@@ -48,6 +47,13 @@
 
     text.onkeydown = function (e) {
         if (e.keyCode === 13 && text.value !== "") {
+            var name = document.getElementById("name").value;
+
+            if (name === ""){
+                alert("Please type your name")
+                return
+            }
+
             ws.send(JSON.stringify({name, "text": text.value}));
             text.value = "";
         }
