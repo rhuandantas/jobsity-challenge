@@ -6,8 +6,7 @@ import (
 	"time"
 )
 
-//TODO add in other files
-//go:generate mockgen -source=$GOFILE -package=mock_core -destination=../test/mock/core/$GOFILE
+//go:generate mockgen -source=$GOFILE -package=mock_config -destination=../../test/mock/config/$GOFILE
 
 type ConfigStore interface {
 	Get(key string) interface{}

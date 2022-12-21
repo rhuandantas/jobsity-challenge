@@ -1,22 +1,29 @@
-package models
+package services
 
 import (
 	"chat-jobsity/internal/command"
+	"chat-jobsity/internal/models"
 	"fmt"
 	"strings"
 )
 
-type MessageManager struct {
-	cmdManager *command.Manager
+//go:generate mockgen -source=$GOFILE -package=mock_service -destination=../../test/mock/service/$GOFILE
+
+type MessageManager interface {
+	ManageMessage(m *models.MessageRequest) (string, error)
 }
 
-func NewMessageManager(cmdManager *command.Manager) *MessageManager {
-	return &MessageManager{
+type MessageManagerImpl struct {
+	cmdManager command.Manager
+}
+
+func NewMessageManager(cmdManager command.Manager) MessageManager {
+	return &MessageManagerImpl{
 		cmdManager: cmdManager,
 	}
 }
 
-func (mv *MessageManager) ManageMessage(m *MessageRequest) (string, error) {
+func (mv *MessageManagerImpl) ManageMessage(m *models.MessageRequest) (string, error) {
 	isCommand := strings.HasPrefix(m.Text, "/")
 	if isCommand {
 		str := strings.Split(m.Text, "=")

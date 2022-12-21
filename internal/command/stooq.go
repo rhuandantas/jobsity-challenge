@@ -2,11 +2,13 @@ package command
 
 import "chat-jobsity/internal/client"
 
+//go:generate mockgen -source=$GOFILE -package=mock_command -destination=../../test/mock/command/$GOFILE
+
 type StockCommand struct {
-	stooqCli *client.StooqClient
+	stooqCli client.StooqClient
 }
 
-func NewStooqCommand(stooqCli *client.StooqClient) *StockCommand {
+func NewStooqCommand(stooqCli client.StooqClient) *StockCommand {
 	return &StockCommand{
 		stooqCli: stooqCli,
 	}

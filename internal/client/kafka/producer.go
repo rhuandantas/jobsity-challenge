@@ -6,7 +6,13 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-type Producer struct {
+//go:generate mockgen -source=$GOFILE -package=mock_kafka -destination=../../../test/mock/client/kafka/$GOFILE
+
+type Producer interface {
+	SendMessage(message string)
+}
+
+type producer struct {
 	cfgManager config.ConfigStore
 }
 
@@ -15,13 +21,13 @@ type Message struct {
 	Session string
 }
 
-func NewKafkaProducer(cfgManager config.ConfigStore) *Producer {
-	return &Producer{
+func NewKafkaProducer(cfgManager config.ConfigStore) Producer {
+	return &producer{
 		cfgManager: cfgManager,
 	}
 }
 
-func (kp *Producer) SendMessage(message string) {
+func (kp *producer) SendMessage(message string) {
 	server := fmt.Sprintf("%s:%s", kp.cfgManager.Get("kafka.host"), kp.cfgManager.Get("kafka.port"))
 	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": server})
 	if err != nil {

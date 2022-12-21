@@ -7,17 +7,23 @@ import (
 	"time"
 )
 
-type Consumer struct {
+//go:generate mockgen -source=$GOFILE -package=mock_kafka -destination=../../../test/mock/client/kafka/$GOFILE
+
+type Consumer interface {
+	ReadMessage()
+}
+
+type consumer struct {
 	ws *melody.Melody
 }
 
-func NewKafkaConsumer(ws *melody.Melody) *Consumer {
-	return &Consumer{
+func NewKafkaConsumer(ws *melody.Melody) Consumer {
+	return &consumer{
 		ws: ws,
 	}
 }
 
-func (kc *Consumer) ReadMessage() {
+func (kc *consumer) ReadMessage() {
 
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": "127.0.0.1:9092",

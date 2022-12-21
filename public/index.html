@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <head>
     <title>Melody example: chatting</title>
@@ -16,17 +15,41 @@
 
 <body>
 <center>
-    <h3>Join a channel</h3>
-    <input placeholder="channel" id="channel" type="text"><button id="join">Join</button>
+    <h3>Chat</h3>
+    <pre id="chat"></pre>
+    <input placeholder="say something" id="text" type="text">
 </center>
 
 <script>
-    var chan = document.getElementById("channel");
-    var join = document.getElementById("join");
+    var url = "ws://" + window.location.host + "/ws";
+    var ws = new WebSocket(url);
+    var name = "Guest" + Math.floor(Math.random() * 1000);
 
-    join.onclick = function () {
-        if (chan.value != "") {
-            window.location = "/channel/" + chan.value;
+    var chat = document.getElementById("chat");
+    var text = document.getElementById("text");
+
+    var now = function () {
+        var iso = new Date().toISOString();
+        return iso.split("T")[1].split(".")[0];
+    };
+
+    ws.onmessage = function (msg) {
+        const json = JSON.parse(msg.data);
+        console.log(json)
+        if (json.message) {
+            var line = now() + " " + json.message + "\n";
+            chat.innerText += line;
+        }
+
+        if (json.error) {
+            alert(json.error)
+        }
+    };
+
+    text.onkeydown = function (e) {
+        if (e.keyCode === 13 && text.value !== "") {
+            ws.send(JSON.stringify({name, "text": text.value}));
+            text.value = "";
         }
     };
 

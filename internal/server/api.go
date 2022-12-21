@@ -2,6 +2,8 @@ package server
 
 import (
 	"chat-jobsity/internal/handler"
+	"chat-jobsity/internal/models"
+	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/olahol/melody"
@@ -10,17 +12,15 @@ import (
 type API struct {
 	Server         *echo.Echo
 	Melody         *melody.Melody
-	messageHandler *handler.MessageHandler
+	messageHandler handler.MessageHandler
 }
 
-func NewAPI(messageHandler *handler.MessageHandler) *API {
+func NewAPI(messageHandler handler.MessageHandler) *API {
 	api := &API{
 		Server:         CreateServer(),
+		Melody:         melody.New(),
 		messageHandler: messageHandler,
 	}
-
-	m := melody.New()
-	api.Melody = m
 
 	api.setRoutes()
 
@@ -34,7 +34,6 @@ func CreateServer() *echo.Echo {
 	e.Use(middleware.CORS())
 	e.Static("/", "../public")
 	e.File("/", "public/index.html")
-	e.File("/channel/:channel_id", "public/chan.html")
 
 	return e
 }
@@ -44,20 +43,25 @@ func (a *API) setRoutes() {
 		a.Melody.HandleRequest(c.Response().Writer, c.Request())
 		return nil
 	})
+	var response models.MessageResponse
 
 	a.Melody.HandleMessage(func(s *melody.Session, msg []byte) {
-
 		message, err := a.messageHandler.HandleMessage(msg)
 		if err != nil {
-			msg = []byte(err.Error())
+			msgErr := err.Error()
+			response = models.MessageResponse{
+				Message: nil,
+				Error:   &msgErr,
+			}
+		} else {
+			response = models.MessageResponse{
+				Message: &message,
+				Error:   nil,
+			}
 		}
 
-		if message != "" {
-			msg = []byte(message)
-		}
+		bytes, err := json.Marshal(response)
 
-		a.Melody.BroadcastFilter(msg, func(q *melody.Session) bool {
-			return q.Request.URL.Path == s.Request.URL.Path
-		})
+		a.Melody.Broadcast(bytes)
 	})
 }

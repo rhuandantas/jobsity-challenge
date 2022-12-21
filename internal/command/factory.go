@@ -6,25 +6,27 @@ import (
 	"strings"
 )
 
+//go:generate mockgen -source=$GOFILE -package=mock_command -destination=../../test/mock/command/$GOFILE
+
 var (
 	Stock = "/stock"
 )
 
-type Command interface {
-	Run(param string) (string, error)
+type Manager interface {
+	GetCommand(name string) (Command, error)
 }
 
-type Manager struct {
-	stockCommand *StockCommand
+type ManagerCommand struct {
+	stockCommand Command
 }
 
-func NewCommandManager(stockCommand *StockCommand) *Manager {
-	return &Manager{
+func NewCommandManager(stockCommand Command) Manager {
+	return &ManagerCommand{
 		stockCommand: stockCommand,
 	}
 }
 
-func (m *Manager) GetCommand(name string) (Command, error) {
+func (m *ManagerCommand) GetCommand(name string) (Command, error) {
 	switch strings.ToLower(name) {
 	case Stock:
 		return m.stockCommand, nil
