@@ -2,23 +2,16 @@ package handler
 
 import (
 	"chat-jobsity/internal/models"
-	"chat-jobsity/internal/util"
 	"encoding/json"
-	"fmt"
-	"github.com/gorilla/websocket"
-)
-
-var (
-	upgrader = websocket.Upgrader{}
 )
 
 type MessageHandler struct {
-	validator *util.MessageValidator
+	manager *models.MessageManager
 }
 
-func NewMessageHandler() *MessageHandler {
+func NewMessageHandler(manager *models.MessageManager) *MessageHandler {
 	return &MessageHandler{
-		validator: util.NewMessageValidator(),
+		manager: manager,
 	}
 }
 
@@ -26,13 +19,8 @@ func (h *MessageHandler) HandleMessage(msg []byte) (string, error) {
 	msgRequest := &models.MessageRequest{}
 	err := json.Unmarshal(msg, msgRequest)
 	if err != nil {
-		fmt.Errorf(err.Error())
+		return "", err
 	}
 
-	message, err := h.validator.ValidateMessage(msgRequest)
-	if err != nil {
-		return message, err
-	}
-
-	return message, nil
+	return h.manager.ManageMessage(msgRequest)
 }

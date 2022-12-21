@@ -17,3 +17,8 @@ type MessageRequest struct {
 func (mr MessageRequest) ToBroadcast() string {
 	return fmt.Sprintf("%s %s", mr.UserName, mr.Text)
 }
+
+type MessageResponse struct {
+	Message *string `json:"message"`
+	Error   *string `json:"error"`
+}

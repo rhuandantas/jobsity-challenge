@@ -1,8 +1,8 @@
 package command
 
 import (
-	"chat-jobsity/internal/client"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -14,19 +14,21 @@ type Command interface {
 	Run(param string) (string, error)
 }
 
-type StockCommand struct {
+type Manager struct {
+	stockCommand *StockCommand
 }
 
-func GetCommand(name string) (Command, error) {
+func NewCommandManager(stockCommand *StockCommand) *Manager {
+	return &Manager{
+		stockCommand: stockCommand,
+	}
+}
+
+func (m *Manager) GetCommand(name string) (Command, error) {
 	switch strings.ToLower(name) {
 	case Stock:
-		return StockCommand{}, nil
+		return m.stockCommand, nil
 	}
 
-	return nil, errors.New("command is invalid")
-}
-
-func (sc StockCommand) Run(param string) (string, error) {
-	stooqCli := client.StooqClient{}
-	return stooqCli.GetStockDetails(param)
+	return nil, errors.New(fmt.Sprintf("ChatBot command %s is invalid", name))
 }
