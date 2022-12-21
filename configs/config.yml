@@ -1,0 +1,13 @@
+app:
+  name: chat-jobsity
+  version: 0.1.0
+
+kafka:
+  host: "127.0.0.1"
+  port: "9092"
+  topic: "message_as_command"
+  producer:
+  consumer:
+
+stooq:
+  url: "https://stooq.com/q/l/?s=%s&f=sd2t2ohlcv&h&e=csv"
